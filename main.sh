@@ -25,19 +25,36 @@ get_last_uid() {
 	echo "$(($gid+1))"
 }
 
+verify_home_dir() {
+#Verify if the directory already exists
+	if [ -d $1 ]
+	then
+		echo 1	#Dir exists
+	else
+		echo 0	#Dir doesn't exists
+	fi
+}
+
 usr_login=$(get_login)
 usr_id=$(get_last_uid)
 group_id=$(get_last_gid)
-usr_name=$(get_user_name)
+usr_name=$(get_user_name)	
 
-if (whiptail --title "WHIPTUSER" --yesno "THE DEFAULT SHELL IS SET TO /bin/bash.\nKEEP IT ?" 10 60) then
+if (whiptail --title "WHIPTUSER" --yesno "THE DEFAULT SHELL IS SET TO /bin/bash\nKEEP IT ?" 10 60) then
     usr_shell="/bin/bash"
 else
 	#TO-DO
     usr_shell="undefined" 
 fi
 
-usr_home="/home/$usr_login"
+#Set the value of usr_home variable based on the response of the function or finish the script otherwise
+if [ $(verify_home_dir "/home/$usr_login") -eq 0 ] 
+then
+	usr_home="/home/$usr_login"
+else
+	printf "\tError: %s already exists\n" "/home/$usr_login"
+	exit 1
+fi
 
 printf "$usr_login:x:$usr_id:$group_id:$usr_name,,,:$usr_home:$usr_shell\n"
 #echo "$usr_login:x:$usr_id:$group_id:$usr_name,,,:$usr_home:$usr_shell" >> /etc/passwd
