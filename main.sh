@@ -35,6 +35,20 @@ verify_home_dir() {
 	fi
 }
 
+add_user() {
+	echo "Adding $usr_login ..."
+	cp -p /etc/group /tmp/etc_passwd.bkp
+	echo "$1:x:$2:$3:$4,,,:$5:$6" >> /etc/passwd
+	add_primary_group $1 $2
+	echo "All done !"
+}
+
+add_primary_group() {
+	echo "Adding $usr_login to group $group_id..."
+	cp -p /etc/group /tmp/etc_group.bkp
+	echo "$1:x:$2:" >> /etc/group
+}
+
 usr_login=$(get_login)
 usr_id=$(get_last_uid)
 group_id=$(get_last_gid)
@@ -51,12 +65,13 @@ fi
 if [ $(verify_home_dir "/home/$usr_login") -eq 0 ] 
 then
 	usr_home="/home/$usr_login"
+	mkdir $usr_home
+	chown $usr_login:$usr_login $usr_home
+	
 else
 	printf "\tError: %s already exists\n" "/home/$usr_login"
 	exit 1
 fi
 
-printf "$usr_login:x:$usr_id:$group_id:$usr_name,,,:$usr_home:$usr_shell\n"
-#echo "$usr_login:x:$usr_id:$group_id:$usr_name,,,:$usr_home:$usr_shell" >> /etc/passwd
-printf "\n$usr_login:x:$group_id:\n"
-#echo "$usr_login:x:$group_id:" >> /etc/group
+add_user $usr_login $usr_id $group_id $usr_name $usr_home $usr_shell
+exit 0	
